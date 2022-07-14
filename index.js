@@ -1,6 +1,8 @@
+require('dotenv').config()
 const express = require('express')
 const morgan = require('morgan')
 const cors = require('cors')
+const Contact = require('./models/contact')
 
 const app = express()
 app.use(cors())
@@ -23,77 +25,78 @@ app.use(morgan((tokens, req, res) => {
   ].join(' ')
 }))
 
-let data = [
-  {
-    id: 1,
-    name: 'Arto Hellas',
-    number: '040-123456'
-  },
-  {
-    id: 2,
-    name: 'Ada Lovelace',
-    number: '39-44-5323523'
-  },
-  {
-    id: 3,
-    name: 'Dan Abramov',
-    number: '12-43-234345'
-  },
-  {
-    id: 4,
-    name: 'Mary Poppendick',
-    number: '39-23-6423122'
-  }
-]
-
-const generateId = () => {
-  const maxId = data.length > 0
-    ? Math.max(...data.map(p => p.id))
-    : 0
-  return maxId + 1
-}
 
 app.get('/info', (req, res) => {
   res.send(`Phonebook has info for ${data.length} people<br><br>${new Date()}`)
 })
 
 app.get('/api/persons', (req, res) => {
-  res.json(data)
+  Contact.find({})
+    .then(contacts => res.json(contacts))
 })
 
-app.post('/api/persons', (req, res) => {
+app.post('/api/persons', (req, res, next) => {
   const body = req.body
   if (!body.name || !body.number)
     return res.status(400).json({ error: 'name or number missing' })
-  if (data.some(p => p.name == body.name))
-    return res.status(400).json({ error: 'name must be unique' })
 
-  const person = {
-    id: generateId(),
+  // Deprecated overlap check -- should be refactored
+  // if (data.some(p => p.name == body.name))
+  //   return res.status(400).json({ error: 'name must be unique' })
+
+  const contact = new Contact({
+    name: body.name,
+    number: body.number
+  })
+
+  contact.save()
+    .then(savedContact => res.json(savedContact))
+    .catch(error => next(error))
+})
+
+app.get('/api/persons/:id', (req, res, next) => {
+  Contact.findById(req.params.id)
+    .then(contact => {
+      if (!contact)
+        return res.status(404).end()
+      res.json(contact)
+    })
+    .catch(error => next(error))
+})
+
+app.put('/api/persons/:id', (req, res, next) => {
+  const body = req.body
+  if (!body.name || !body.number)
+    return res.status(400).json({ error: 'name or number missing' })
+
+  const contact = {
     name: body.name,
     number: body.number
   }
 
-  data = data.concat(person)
-  res.json(person)
+  Contact.findByIdAndUpdate(req.params.id, contact, { new: true })
+    .then(updatedContact => res.json(updatedContact))
+    .catch(error => next(error))
 })
 
-app.get('/api/persons/:id', (req, res) => {
-  const id = req.params.id
-  const person = data.find(p => p.id == id)
-  if (!person)
-    return res.status(404).end()
-
-  res.json(person)
+app.delete('/api/persons/:id', (req, res, next) => {
+  Contact.findByIdAndDelete(req.params.id)
+    .then(result => res.status(204).end())
+    .catch(error => next(error))
 })
 
-app.delete('/api/persons/:id', (req, res) => {
-  const id = req.params.id
-  data = data.filter(p => p.id != id)
-  res.status(204).end()
-})
-  
-const PORT = process.env.PORT || 3001
+const errorHandler = (error, req, res, next) => {
+  console.error(error.message)
+
+  if (error.name === 'CastError') {
+    return res.status(400).send({ error: 'malformatted id' })
+  }
+
+  next(error)
+}
+app.use(errorHandler)
+
+const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`)
 })
