@@ -33,8 +33,9 @@ if (process.argv.length === 5) {
 }
 
 Contact.find({}).then(result => {
-  result.forEach(note => {
-    console.log(note)
+  console.log('phonebook:')
+  result.forEach(contact => {
+    console.log(contact.name, contact.number)
   })
   mongoose.connection.close()
 })
