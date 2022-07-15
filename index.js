@@ -37,8 +37,8 @@ app.get('/api/persons', (req, res) => {
 
 app.post('/api/persons', (req, res, next) => {
   const body = req.body
-  if (!body.name || !body.number)
-    return res.status(400).json({ error: 'name or number missing' })
+  // if (!body.name || !body.number)
+  //   return res.status(400).json({ error: 'name or number missing' })
 
   // Deprecated overlap check -- should be refactored
   // if (data.some(p => p.name == body.name))
@@ -65,16 +65,13 @@ app.get('/api/persons/:id', (req, res, next) => {
 })
 
 app.put('/api/persons/:id', (req, res, next) => {
-  const body = req.body
-  if (!body.name || !body.number)
-    return res.status(400).json({ error: 'name or number missing' })
+  const { name, number } = req.body
 
-  const contact = {
-    name: body.name,
-    number: body.number
-  }
-
-  Contact.findByIdAndUpdate(req.params.id, contact, { new: true })
+  Contact.findByIdAndUpdate(
+    req.params.id,
+    { name, number },
+    { new: true, runValidators: true, context: 'query' }
+  )
     .then(updatedContact => res.json(updatedContact))
     .catch(error => next(error))
 })
@@ -88,9 +85,10 @@ app.delete('/api/persons/:id', (req, res, next) => {
 const errorHandler = (error, req, res, next) => {
   console.error(error.message)
 
-  if (error.name === 'CastError') {
+  if (error.name === 'CastError')
     return res.status(400).send({ error: 'malformatted id' })
-  }
+  if (error.name === 'ValidationError')
+    return res.status(400).json({ error: error.message })
 
   next(error)
 }

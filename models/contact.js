@@ -8,8 +8,19 @@ mongoose.connect(url)
 	.catch(error => console.log('error connecting to MongoDB:', error.Message))
 
 const contactSchema = new mongoose.Schema({
-	name: String,
-	number: String
+	name: {
+		type: String,
+		minlength: 3,
+		required: true
+	},
+	number: {
+		type: String,
+		minlength: 8,
+		validate: {
+			validator: (num) => /\b\d{2,3}-\d{6}/.test(num)
+		},
+		required: true
+	}
 })
 
 contactSchema.set('toJSON', {
