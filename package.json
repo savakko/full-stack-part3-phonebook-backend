@@ -8,7 +8,7 @@
     "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint .",
-    "build:ui": "rm -rf build && cd ../full-stack-open-2022/part2/phonebook/ && npm run build && cp -r build ../../../full-stack-part3-phonebook-backend/",
+    "build:ui": "rmdir /Q /S build && cd ../full-stack-open-2022/part2/phonebook/ && npm run build && xcopy build ..\\..\\..\\full-stack-part3-phonebook-backend\\build\\ /E",
     "deploy": "git push heroku main",
     "deploy:full": "npm run build:ui && git add . && git commit -m uibuild && git push && npm run deploy",
     "logs:prod": "heroku logs --tail"
