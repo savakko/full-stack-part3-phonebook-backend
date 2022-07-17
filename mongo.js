@@ -26,7 +26,7 @@ if (process.argv.length === 5) {
     number: number
   })
 
-  return contact.save().then(result => {
+  return contact.save().then(() => {
     console.log(`added ${name} number ${number} to phonebook`)
     mongoose.connection.close()
   })

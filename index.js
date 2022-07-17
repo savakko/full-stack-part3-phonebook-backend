@@ -9,7 +9,7 @@ app.use(cors())
 app.use(express.static('build'))
 app.use(express.json())
 
-morgan.token('body', (req, _res) => JSON.stringify(req.body))
+morgan.token('body', (req) => JSON.stringify(req.body))
 app.use(morgan((tokens, req, res) => {
   let body = ''
   if (req.method === 'POST')
@@ -27,7 +27,10 @@ app.use(morgan((tokens, req, res) => {
 
 
 app.get('/info', (req, res) => {
-  res.send(`Phonebook has info for ${data.length} people<br><br>${new Date()}`)
+  Contact.find({})
+    .then(contacts => {
+      res.send(`Phonebook has info for ${contacts.length} people<br><br>${new Date()}`)
+    })
 })
 
 app.get('/api/persons', (req, res) => {
@@ -78,7 +81,7 @@ app.put('/api/persons/:id', (req, res, next) => {
 
 app.delete('/api/persons/:id', (req, res, next) => {
   Contact.findByIdAndDelete(req.params.id)
-    .then(result => res.status(204).end())
+    .then(() => res.status(204).end())
     .catch(error => next(error))
 })
 
