@@ -27,10 +27,8 @@ app.use(morgan((tokens, req, res) => {
 
 
 app.get('/info', (req, res) => {
-  Contact.find({})
-    .then(contacts => {
-      res.send(`Phonebook has info for ${contacts.length} people<br><br>${new Date()}`)
-    })
+  Contact.count({})
+    .then(count => res.send(`Phonebook has info for ${count} people<br><br>${new Date()}`))
 })
 
 app.get('/api/persons', (req, res) => {
@@ -40,12 +38,6 @@ app.get('/api/persons', (req, res) => {
 
 app.post('/api/persons', (req, res, next) => {
   const body = req.body
-  // if (!body.name || !body.number)
-  //   return res.status(400).json({ error: 'name or number missing' })
-
-  // Deprecated overlap check -- should be refactored
-  // if (data.some(p => p.name == body.name))
-  //   return res.status(400).json({ error: 'name must be unique' })
 
   const contact = new Contact({
     name: body.name,
