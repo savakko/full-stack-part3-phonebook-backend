@@ -1,10 +1,9 @@
+const morgan = require('morgan')
 const logger = require('./logger')
 
-/* // morgan logging middleware - not currently in use --->
-const morgan = require('morgan')
 morgan.token('body', (req) => JSON.stringify(req.body))
-const morganLog = morgan(':method :url :status :res[content-length] - :response-time ms :body')
-// <--- morgan logging middleware */
+
+const morganLogger = morgan(':method :url :status :res[content-length] - :response-time ms :body')
 
 const requestLogger = (request, response, next) => {
   logger.info(`--- New request at ${new Date()} ---`)
@@ -31,6 +30,7 @@ const errorHandler = (error, request, response, next) => {
 }
 
 module.exports = {
+  morganLogger,
   requestLogger,
   unknownEndpoint,
   errorHandler
